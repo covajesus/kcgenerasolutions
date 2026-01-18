@@ -16,11 +16,19 @@ class AuthenticationClass:
 
     def authenticate_shopping_login(self, identification_number):
         user = UserClass(self.db).get('rut', identification_number)
-        response_data = json.loads(user)
+        
+        # Verificar si user es un string de error
+        if isinstance(user, str) and (user.startswith("Error:") or user.startswith("No se encontraron")):
+            raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+        
+        try:
+            response_data = json.loads(user)
+        except (json.JSONDecodeError, TypeError):
+            raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
 
         print(response_data)
 
-        if not user:
+        if not response_data or "user_data" not in response_data:
             raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
 
         return response_data
@@ -28,9 +36,17 @@ class AuthenticationClass:
     def authenticate_user(self, email, password):
         user = UserClass(self.db).get('email', email)
         print(user)
-        response_data = json.loads(user)
+        
+        # Verificar si user es un string de error
+        if isinstance(user, str) and (user.startswith("Error:") or user.startswith("No se encontraron")):
+            raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+        
+        try:
+            response_data = json.loads(user)
+        except (json.JSONDecodeError, TypeError):
+            raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
 
-        if not user:
+        if not response_data or "user_data" not in response_data:
             raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
 
         if not self.verify_password(password, response_data["user_data"]["hashed_password"]):
