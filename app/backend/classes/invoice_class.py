@@ -3,7 +3,7 @@ import platform
 from datetime import datetime
 
 from fastapi import HTTPException
-from sqlalchemy import func
+from sqlalchemy import func, cast, String
 
 from app.backend.classes.file_class import FileClass
 from app.backend.db.models import InvoiceModel
@@ -49,6 +49,7 @@ class InvoiceClass:
                     "company": inv.company,
                     "file": inv.file,
                     "file_url": self._file_url(inv.file),
+                    "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
                     "added_date": inv.added_date.strftime("%Y-%m-%d %H:%M:%S") if inv.added_date else None,
                     "updated_date": inv.updated_date.strftime("%Y-%m-%d %H:%M:%S") if inv.updated_date else None,
                 } for inv in data]
@@ -68,6 +69,7 @@ class InvoiceClass:
                 "company": inv.company,
                 "file": inv.file,
                 "file_url": self._file_url(inv.file),
+                "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
                 "added_date": inv.added_date.strftime("%Y-%m-%d %H:%M:%S") if inv.added_date else None,
                 "updated_date": inv.updated_date.strftime("%Y-%m-%d %H:%M:%S") if inv.updated_date else None,
             } for inv in data]
@@ -83,6 +85,7 @@ class InvoiceClass:
                     "id": inv.id,
                     "invoice_number": inv.invoice_number,
                     "company": inv.company,
+                    "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
                 } for inv in data]
             }
         except Exception as e:
@@ -100,7 +103,8 @@ class InvoiceClass:
                 return {"status": "error", "message": "Debe enviar invoice_number"}
 
             q = self.db.query(InvoiceModel).order_by(InvoiceModel.id.desc())
-            q = q.filter(InvoiceModel.invoice_number.ilike(f"%{str(invoice_number).strip()}%"))
+            # invoice_number es INT en DB; permitir buscar como string
+            q = q.filter(cast(InvoiceModel.invoice_number, String).ilike(f"%{str(invoice_number).strip()}%"))
 
             if page and page > 0:
                 total_items = q.count()
@@ -119,6 +123,7 @@ class InvoiceClass:
                     "company": inv.company,
                     "file": inv.file,
                     "file_url": self._file_url(inv.file),
+                    "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
                     "added_date": inv.added_date.strftime("%Y-%m-%d %H:%M:%S") if inv.added_date else None,
                     "updated_date": inv.updated_date.strftime("%Y-%m-%d %H:%M:%S") if inv.updated_date else None,
                 } for inv in data]
@@ -138,6 +143,7 @@ class InvoiceClass:
                 "company": inv.company,
                 "file": inv.file,
                 "file_url": self._file_url(inv.file),
+                "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
                 "added_date": inv.added_date.strftime("%Y-%m-%d %H:%M:%S") if inv.added_date else None,
                 "updated_date": inv.updated_date.strftime("%Y-%m-%d %H:%M:%S") if inv.updated_date else None,
             } for inv in data]
@@ -147,10 +153,19 @@ class InvoiceClass:
 
     def store(self, payload: dict):
         try:
+            inv_num = payload.get("invoice_number")
+            if inv_num is None or str(inv_num).strip() == "":
+                return {"status": "error", "message": "invoice_number es requerido"}
+            try:
+                inv_num = int(inv_num)
+            except Exception:
+                return {"status": "error", "message": "invoice_number inválido"}
+
             inv = InvoiceModel(
-                invoice_number=str(payload.get("invoice_number") or ""),
+                invoice_number=inv_num,
                 company=str(payload.get("company") or ""),
                 file=payload.get("file"),
+                invoice_date=payload.get("invoice_date"),
                 added_date=datetime.utcnow(),
                 updated_date=datetime.utcnow(),
             )
@@ -162,6 +177,7 @@ class InvoiceClass:
                 "invoice_id": inv.id,
                 "file": inv.file,
                 "file_url": self._file_url(inv.file),
+                "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
             }
         except Exception as e:
             self.db.rollback()
@@ -173,10 +189,19 @@ class InvoiceClass:
             return "No data found"
 
         try:
-            inv.invoice_number = str(payload.get("invoice_number") or "")
+            inv_num = payload.get("invoice_number")
+            if inv_num is None or str(inv_num).strip() == "":
+                return {"status": "error", "message": "invoice_number es requerido"}
+            try:
+                inv.invoice_number = int(inv_num)
+            except Exception:
+                return {"status": "error", "message": "invoice_number inválido"}
+
             inv.company = str(payload.get("company") or "")
             if isinstance(payload, dict) and "file" in payload and payload.get("file") is not None:
                 inv.file = payload.get("file")
+            if isinstance(payload, dict) and "invoice_date" in payload:
+                inv.invoice_date = payload.get("invoice_date")
             inv.updated_date = datetime.utcnow()
             self.db.commit()
             self.db.refresh(inv)
@@ -185,6 +210,7 @@ class InvoiceClass:
                 "invoice_id": inv.id,
                 "file": inv.file,
                 "file_url": self._file_url(inv.file),
+                "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
             }
         except Exception as e:
             self.db.rollback()
@@ -202,6 +228,7 @@ class InvoiceClass:
                     "company": inv.company,
                     "file": inv.file,
                     "file_url": self._file_url(inv.file),
+                    "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
                     "added_date": inv.added_date.strftime("%Y-%m-%d %H:%M:%S") if inv.added_date else None,
                     "updated_date": inv.updated_date.strftime("%Y-%m-%d %H:%M:%S") if inv.updated_date else None,
                 }

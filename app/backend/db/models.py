@@ -284,9 +284,10 @@ class InvoiceModel(Base):
     __tablename__ = 'invoices'
 
     id = Column(Integer, primary_key=True)
-    invoice_number = Column(String(255))
+    invoice_number = Column(Integer)
     company = Column(String(255))
     file = Column(Text())
+    invoice_date = Column(Date())
     added_date = Column(DateTime())
     updated_date = Column(DateTime())
 
@@ -297,5 +298,6 @@ class BudgetModel(Base):
     budget_number = Column(String(255))
     company = Column(String(255))
     file = Column(Text())
+    budget_date = Column(Date())
     added_date = Column(DateTime())
     updated_date = Column(DateTime())

@@ -49,6 +49,7 @@ class BudgetClass:
                     "company": b.company,
                     "file": b.file,
                     "file_url": self._file_url(b.file),
+                    "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
                     "added_date": b.added_date.strftime("%Y-%m-%d %H:%M:%S") if b.added_date else None,
                     "updated_date": b.updated_date.strftime("%Y-%m-%d %H:%M:%S") if b.updated_date else None,
                 } for b in data]
@@ -68,6 +69,7 @@ class BudgetClass:
                 "company": b.company,
                 "file": b.file,
                 "file_url": self._file_url(b.file),
+                "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
                 "added_date": b.added_date.strftime("%Y-%m-%d %H:%M:%S") if b.added_date else None,
                 "updated_date": b.updated_date.strftime("%Y-%m-%d %H:%M:%S") if b.updated_date else None,
             } for b in data]
@@ -83,6 +85,7 @@ class BudgetClass:
                     "id": b.id,
                     "budget_number": b.budget_number,
                     "company": b.company,
+                    "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
                 } for b in data]
             }
         except Exception as e:
@@ -119,6 +122,7 @@ class BudgetClass:
                     "company": b.company,
                     "file": b.file,
                     "file_url": self._file_url(b.file),
+                    "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
                     "added_date": b.added_date.strftime("%Y-%m-%d %H:%M:%S") if b.added_date else None,
                     "updated_date": b.updated_date.strftime("%Y-%m-%d %H:%M:%S") if b.updated_date else None,
                 } for b in data]
@@ -138,6 +142,7 @@ class BudgetClass:
                 "company": b.company,
                 "file": b.file,
                 "file_url": self._file_url(b.file),
+                "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
                 "added_date": b.added_date.strftime("%Y-%m-%d %H:%M:%S") if b.added_date else None,
                 "updated_date": b.updated_date.strftime("%Y-%m-%d %H:%M:%S") if b.updated_date else None,
             } for b in data]
@@ -151,6 +156,7 @@ class BudgetClass:
                 budget_number=str(payload.get("budget_number") or ""),
                 company=str(payload.get("company") or ""),
                 file=payload.get("file"),
+                budget_date=payload.get("budget_date"),
                 added_date=datetime.utcnow(),
                 updated_date=datetime.utcnow(),
             )
@@ -162,6 +168,7 @@ class BudgetClass:
                 "budget_id": b.id,
                 "file": b.file,
                 "file_url": self._file_url(b.file),
+                "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
             }
         except Exception as e:
             self.db.rollback()
@@ -177,6 +184,8 @@ class BudgetClass:
             b.company = str(payload.get("company") or "")
             if isinstance(payload, dict) and "file" in payload and payload.get("file") is not None:
                 b.file = payload.get("file")
+            if isinstance(payload, dict) and "budget_date" in payload:
+                b.budget_date = payload.get("budget_date")
             b.updated_date = datetime.utcnow()
             self.db.commit()
             self.db.refresh(b)
@@ -185,6 +194,7 @@ class BudgetClass:
                 "budget_id": b.id,
                 "file": b.file,
                 "file_url": self._file_url(b.file),
+                "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
             }
         except Exception as e:
             self.db.rollback()
@@ -202,6 +212,7 @@ class BudgetClass:
                     "company": b.company,
                     "file": b.file,
                     "file_url": self._file_url(b.file),
+                    "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
                     "added_date": b.added_date.strftime("%Y-%m-%d %H:%M:%S") if b.added_date else None,
                     "updated_date": b.updated_date.strftime("%Y-%m-%d %H:%M:%S") if b.updated_date else None,
                 }

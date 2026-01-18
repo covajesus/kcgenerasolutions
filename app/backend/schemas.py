@@ -199,36 +199,42 @@ class InvoiceSearch(BaseModel):
     invoice_number: Optional[str] = None
 
 class StoreInvoice(BaseModel):
-    invoice_number: str
+    invoice_number: int
     company: str
+    invoice_date: Optional[date] = None
     file: Optional[str] = None
 
     @classmethod
     def as_form(
         cls,
-        invoice_number: str = Form(...),
+        invoice_number: int = Form(...),
         company: str = Form(...),
+        invoice_date: Optional[date] = Form(None),
     ):
         return cls(
             invoice_number=invoice_number,
             company=company,
+            invoice_date=invoice_date,
             file=None,
         )
 
 class UpdateInvoice(BaseModel):
-    invoice_number: str
+    invoice_number: int
     company: str
+    invoice_date: Optional[date] = None
     file: Optional[str] = None
 
     @classmethod
     def as_form(
         cls,
-        invoice_number: str = Form(...),
+        invoice_number: int = Form(...),
         company: str = Form(...),
+        invoice_date: Optional[date] = Form(None),
     ):
         return cls(
             invoice_number=invoice_number,
             company=company,
+            invoice_date=invoice_date,
             file=None,
         )
 
@@ -242,6 +248,7 @@ class BudgetSearch(BaseModel):
 class StoreBudget(BaseModel):
     budget_number: str
     company: str
+    budget_date: Optional[date] = None
     file: Optional[str] = None
 
     @classmethod
@@ -249,16 +256,19 @@ class StoreBudget(BaseModel):
         cls,
         budget_number: str = Form(...),
         company: str = Form(...),
+        budget_date: Optional[date] = Form(None),
     ):
         return cls(
             budget_number=budget_number,
             company=company,
+            budget_date=budget_date,
             file=None,
         )
 
 class UpdateBudget(BaseModel):
     budget_number: str
     company: str
+    budget_date: Optional[date] = None
     file: Optional[str] = None
 
     @classmethod
@@ -266,10 +276,12 @@ class UpdateBudget(BaseModel):
         cls,
         budget_number: str = Form(...),
         company: str = Form(...),
+        budget_date: Optional[date] = Form(None),
     ):
         return cls(
             budget_number=budget_number,
             company=company,
+            budget_date=budget_date,
             file=None,
         )
 
