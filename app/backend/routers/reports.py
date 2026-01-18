@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 import re
 from pathlib import Path
 import zlib
+import logging
 
 from app.backend.auth.auth_user import get_current_active_user
 from app.backend.db.database import get_db
@@ -18,6 +19,8 @@ reports = APIRouter(
     prefix="/reports",
     tags=["Reports"],
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _parse_date(value: str) -> datetime:
@@ -127,45 +130,62 @@ def _build_expense_report_pdf(
     logo_obj = None
     logo_px_w = None
     logo_px_h = None
+    logo_path = None
     try:
         from PIL import Image  # type: ignore
 
         project_root = Path(__file__).resolve().parents[3]
-        # Preferido: logo.png. Fallback: logo.webp
-        logo_path = project_root / "public" / "assets" / "logo.png"
-        if not (logo_path.exists() and logo_path.is_file()):
-            logo_path = project_root / "public" / "assets" / "logo.webp"
-        if logo_path.exists() and logo_path.is_file():
-            with Image.open(str(logo_path)) as img:
-                # Si el PNG trae transparencia (alpha), al convertir directo a RGB queda fondo negro.
-                # Lo aplanamos sobre fondo blanco para que se vea bien.
-                img = img.convert("RGBA")
-                bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
-                img = Image.alpha_composite(bg, img).convert("RGB")
-                # Limitar tamaño en píxeles para que el PDF no quede pesado
-                max_px_w = 600
-                if img.width > max_px_w:
-                    ratio = max_px_w / float(img.width)
-                    new_size = (max_px_w, max(1, int(img.height * ratio)))
-                    img = img.resize(new_size)
 
-                logo_px_w, logo_px_h = img.width, img.height
-                raw = img.tobytes()  # RGB, 8 bits por canal
-                compressed = zlib.compress(raw, level=9)
+        # Intentar PNG primero, luego WEBP
+        candidates = [
+            project_root / "public" / "assets" / "logo.png",
+            project_root / "public" / "assets" / "logo.webp",
+        ]
 
-                logo_obj = add_obj(
-                    b"<< /Type /XObject /Subtype /Image "
-                    + b"/Width " + str(logo_px_w).encode("ascii")
-                    + b" /Height " + str(logo_px_h).encode("ascii")
-                    + b" /ColorSpace /DeviceRGB /BitsPerComponent 8 "
-                    + b"/Filter /FlateDecode "
-                    + b"/Length " + str(len(compressed)).encode("ascii")
-                    + b" >>\nstream\n"
-                    + compressed
-                    + b"\nendstream"
-                )
+        for candidate in candidates:
+            if not (candidate.exists() and candidate.is_file()):
+                continue
+            logo_path = candidate
+            try:
+                with Image.open(str(candidate)) as img:
+                    # Si el PNG trae transparencia (alpha), al convertir directo a RGB queda fondo negro.
+                    # Lo aplanamos sobre fondo blanco para que se vea bien.
+                    img = img.convert("RGBA")
+                    bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
+                    img = Image.alpha_composite(bg, img).convert("RGB")
+                    # Limitar tamaño en píxeles para que el PDF no quede pesado
+                    max_px_w = 600
+                    if img.width > max_px_w:
+                        ratio = max_px_w / float(img.width)
+                        new_size = (max_px_w, max(1, int(img.height * ratio)))
+                        img = img.resize(new_size)
+
+                    logo_px_w, logo_px_h = img.width, img.height
+                    raw = img.tobytes()  # RGB, 8 bits por canal
+                    compressed = zlib.compress(raw, level=9)
+
+                    logo_obj = add_obj(
+                        b"<< /Type /XObject /Subtype /Image "
+                        + b"/Width " + str(logo_px_w).encode("ascii")
+                        + b" /Height " + str(logo_px_h).encode("ascii")
+                        + b" /ColorSpace /DeviceRGB /BitsPerComponent 8 "
+                        + b"/Filter /FlateDecode "
+                        + b"/Length " + str(len(compressed)).encode("ascii")
+                        + b" >>\nstream\n"
+                        + compressed
+                        + b"\nendstream"
+                    )
+                break
+            except Exception:
+                # probar siguiente candidato
+                logger.exception("No se pudo abrir logo: %s", str(candidate))
+                logo_obj = None
+                logo_px_w = None
+                logo_px_h = None
+                continue
     except Exception:
         # No romper el reporte si falta el archivo o Pillow
+        logger.exception("Error cargando logo para PDF. logo_path=%s", str(logo_path) if logo_path else None)
         logo_obj = None
         logo_px_w = None
         logo_px_h = None
