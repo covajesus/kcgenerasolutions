@@ -12,7 +12,7 @@ from app.backend.classes.file_class import FileClass
 from app.backend.classes.invoice_class import InvoiceClass
 from app.backend.db.database import get_db
 from app.backend.db.models import InvoiceModel
-from app.backend.schemas import UserLogin, InvoiceList, StoreInvoice, UpdateInvoice
+from app.backend.schemas import UserLogin, InvoiceList, InvoiceSearch, StoreInvoice, UpdateInvoice
 
 
 invoices = APIRouter(
@@ -40,6 +40,11 @@ def index(inputs: InvoiceList, session_user: UserLogin = Depends(get_current_act
 @invoices.get("/list")
 def list_all(session_user: UserLogin = Depends(get_current_active_user), db: Session = Depends(get_db)):
     data = InvoiceClass(db).get_list()
+    return {"message": data}
+
+@invoices.post("/search")
+def search(inputs: InvoiceSearch, session_user: UserLogin = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    data = InvoiceClass(db).search(inputs.model_dump())
     return {"message": data}
 
 

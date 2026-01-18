@@ -88,6 +88,63 @@ class BudgetClass:
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
+    def search(self, search_inputs, items_per_page=10):
+        """
+        Busca por budget_number (parcial).
+        """
+        try:
+            page = (search_inputs or {}).get("page", 0) or 0
+            budget_number = (search_inputs or {}).get("budget_number")
+
+            if budget_number is None or str(budget_number).strip() == "":
+                return {"status": "error", "message": "Debe enviar budget_number"}
+
+            q = self.db.query(BudgetModel).order_by(BudgetModel.id.desc())
+            q = q.filter(BudgetModel.budget_number.ilike(f"%{str(budget_number).strip()}%"))
+
+            if page and page > 0:
+                total_items = q.count()
+                total_pages = (total_items + items_per_page - 1) // items_per_page
+
+                if page < 1 or (total_pages > 0 and page > total_pages):
+                    return {"status": "error", "message": "Invalid page number"}
+
+                data = q.offset((page - 1) * items_per_page).limit(items_per_page).all()
+                if not data:
+                    return {"status": "error", "message": "No data found"}
+
+                serialized_data = [{
+                    "id": b.id,
+                    "budget_number": b.budget_number,
+                    "company": b.company,
+                    "file": b.file,
+                    "file_url": self._file_url(b.file),
+                    "added_date": b.added_date.strftime("%Y-%m-%d %H:%M:%S") if b.added_date else None,
+                    "updated_date": b.updated_date.strftime("%Y-%m-%d %H:%M:%S") if b.updated_date else None,
+                } for b in data]
+
+                return {
+                    "total_items": total_items,
+                    "total_pages": total_pages,
+                    "current_page": page,
+                    "items_per_page": items_per_page,
+                    "data": serialized_data
+                }
+
+            data = q.all()
+            return [{
+                "id": b.id,
+                "budget_number": b.budget_number,
+                "company": b.company,
+                "file": b.file,
+                "file_url": self._file_url(b.file),
+                "added_date": b.added_date.strftime("%Y-%m-%d %H:%M:%S") if b.added_date else None,
+                "updated_date": b.updated_date.strftime("%Y-%m-%d %H:%M:%S") if b.updated_date else None,
+            } for b in data]
+
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
     def store(self, payload: dict):
         try:
             b = BudgetModel(

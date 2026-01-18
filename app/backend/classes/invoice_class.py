@@ -88,6 +88,63 @@ class InvoiceClass:
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
+    def search(self, search_inputs, items_per_page=10):
+        """
+        Busca por invoice_number (parcial).
+        """
+        try:
+            page = (search_inputs or {}).get("page", 0) or 0
+            invoice_number = (search_inputs or {}).get("invoice_number")
+
+            if invoice_number is None or str(invoice_number).strip() == "":
+                return {"status": "error", "message": "Debe enviar invoice_number"}
+
+            q = self.db.query(InvoiceModel).order_by(InvoiceModel.id.desc())
+            q = q.filter(InvoiceModel.invoice_number.ilike(f"%{str(invoice_number).strip()}%"))
+
+            if page and page > 0:
+                total_items = q.count()
+                total_pages = (total_items + items_per_page - 1) // items_per_page
+
+                if page < 1 or (total_pages > 0 and page > total_pages):
+                    return {"status": "error", "message": "Invalid page number"}
+
+                data = q.offset((page - 1) * items_per_page).limit(items_per_page).all()
+                if not data:
+                    return {"status": "error", "message": "No data found"}
+
+                serialized_data = [{
+                    "id": inv.id,
+                    "invoice_number": inv.invoice_number,
+                    "company": inv.company,
+                    "file": inv.file,
+                    "file_url": self._file_url(inv.file),
+                    "added_date": inv.added_date.strftime("%Y-%m-%d %H:%M:%S") if inv.added_date else None,
+                    "updated_date": inv.updated_date.strftime("%Y-%m-%d %H:%M:%S") if inv.updated_date else None,
+                } for inv in data]
+
+                return {
+                    "total_items": total_items,
+                    "total_pages": total_pages,
+                    "current_page": page,
+                    "items_per_page": items_per_page,
+                    "data": serialized_data
+                }
+
+            data = q.all()
+            return [{
+                "id": inv.id,
+                "invoice_number": inv.invoice_number,
+                "company": inv.company,
+                "file": inv.file,
+                "file_url": self._file_url(inv.file),
+                "added_date": inv.added_date.strftime("%Y-%m-%d %H:%M:%S") if inv.added_date else None,
+                "updated_date": inv.updated_date.strftime("%Y-%m-%d %H:%M:%S") if inv.updated_date else None,
+            } for inv in data]
+
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
     def store(self, payload: dict):
         try:
             inv = InvoiceModel(

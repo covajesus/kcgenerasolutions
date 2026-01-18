@@ -12,7 +12,7 @@ from app.backend.classes.budget_class import BudgetClass
 from app.backend.classes.file_class import FileClass
 from app.backend.db.database import get_db
 from app.backend.db.models import BudgetModel
-from app.backend.schemas import UserLogin, BudgetList, StoreBudget, UpdateBudget
+from app.backend.schemas import UserLogin, BudgetList, BudgetSearch, StoreBudget, UpdateBudget
 
 
 budgets = APIRouter(
@@ -40,6 +40,11 @@ def index(inputs: BudgetList, session_user: UserLogin = Depends(get_current_acti
 @budgets.get("/list")
 def list_all(session_user: UserLogin = Depends(get_current_active_user), db: Session = Depends(get_db)):
     data = BudgetClass(db).get_list()
+    return {"message": data}
+
+@budgets.post("/search")
+def search(inputs: BudgetSearch, session_user: UserLogin = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    data = BudgetClass(db).search(inputs.model_dump())
     return {"message": data}
 
 

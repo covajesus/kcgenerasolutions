@@ -194,6 +194,10 @@ class UpdateExpenseReport(BaseModel):
 class InvoiceList(BaseModel):
     page: int
 
+class InvoiceSearch(BaseModel):
+    page: int = 0
+    invoice_number: Optional[str] = None
+
 class StoreInvoice(BaseModel):
     invoice_number: str
     company: str
@@ -230,6 +234,10 @@ class UpdateInvoice(BaseModel):
 
 class BudgetList(BaseModel):
     page: int
+
+class BudgetSearch(BaseModel):
+    page: int = 0
+    budget_number: Optional[str] = None
 
 class StoreBudget(BaseModel):
     budget_number: str
