@@ -9,7 +9,7 @@ files = APIRouter(
 )
 
 BASE_DIR = Path(__file__).resolve().parents[3]
-FILES_DIR = BASE_DIR / "public" / "files"
+FILES_DIR = BASE_DIR / "files"
 FILES_DIR.mkdir(parents=True, exist_ok=True)
 
 def _safe_full_path(file_path: str) -> Path:

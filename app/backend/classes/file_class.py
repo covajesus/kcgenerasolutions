@@ -7,8 +7,8 @@ class FileClass:
         self.db = db
 
         # Guardar SIEMPRE dentro del proyecto actual.
-        # Ej producción: /var/www/api.kcgeneralsolutions.ca/public_html/public/files
-        self.base_dir = Path(__file__).resolve().parents[3] / "public" / "files"
+        # Ej producción: /var/www/api.kcgeneralsolutions.ca/public_html/files
+        self.base_dir = Path(__file__).resolve().parents[3] / "files"
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
     def _safe_full_path(self, remote_path: str) -> Path:
