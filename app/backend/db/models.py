@@ -279,3 +279,23 @@ class ExpenseReportModel(Base):
     file = Column(Text())
     added_date = Column(DateTime())
     updated_date = Column(DateTime())
+
+class InvoiceModel(Base):
+    __tablename__ = 'invoices'
+
+    id = Column(Integer, primary_key=True)
+    invoice_number = Column(String(255))
+    company = Column(String(255))
+    file = Column(Text())
+    added_date = Column(DateTime())
+    updated_date = Column(DateTime())
+
+class BudgetModel(Base):
+    __tablename__ = 'budgets'
+
+    id = Column(Integer, primary_key=True)
+    budget_number = Column(String(255))
+    company = Column(String(255))
+    file = Column(Text())
+    added_date = Column(DateTime())
+    updated_date = Column(DateTime())

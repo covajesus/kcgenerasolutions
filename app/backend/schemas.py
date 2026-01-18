@@ -191,6 +191,80 @@ class UpdateExpenseReport(BaseModel):
             file=None,
         )
 
+class InvoiceList(BaseModel):
+    page: int
+
+class StoreInvoice(BaseModel):
+    invoice_number: str
+    company: str
+    file: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        invoice_number: str = Form(...),
+        company: str = Form(...),
+    ):
+        return cls(
+            invoice_number=invoice_number,
+            company=company,
+            file=None,
+        )
+
+class UpdateInvoice(BaseModel):
+    invoice_number: str
+    company: str
+    file: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        invoice_number: str = Form(...),
+        company: str = Form(...),
+    ):
+        return cls(
+            invoice_number=invoice_number,
+            company=company,
+            file=None,
+        )
+
+class BudgetList(BaseModel):
+    page: int
+
+class StoreBudget(BaseModel):
+    budget_number: str
+    company: str
+    file: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        budget_number: str = Form(...),
+        company: str = Form(...),
+    ):
+        return cls(
+            budget_number=budget_number,
+            company=company,
+            file=None,
+        )
+
+class UpdateBudget(BaseModel):
+    budget_number: str
+    company: str
+    file: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        budget_number: str = Form(...),
+        company: str = Form(...),
+    ):
+        return cls(
+            budget_number=budget_number,
+            company=company,
+            file=None,
+        )
+
 class UpdateSupplier(BaseModel):
     supplier: str
 

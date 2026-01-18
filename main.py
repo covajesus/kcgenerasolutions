@@ -16,6 +16,8 @@ from app.backend.routers.expense_types import expense_types
 from app.backend.routers.expense_reports import expense_reports
 from app.backend.routers.reports import reports
 from app.backend.routers.rols import rols
+from app.backend.routers.invoices import invoices
+from app.backend.routers.budgets import budgets
 
 app = FastAPI(root_path="/api")
 application = app
@@ -55,6 +57,8 @@ app.include_router(expense_types)
 app.include_router(expense_reports)
 app.include_router(reports)
 app.include_router(rols)
+app.include_router(invoices)
+app.include_router(budgets)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000, reload=True)
