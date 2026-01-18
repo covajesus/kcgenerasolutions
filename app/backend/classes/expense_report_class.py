@@ -1,3 +1,6 @@
+import os
+import platform
+
 from app.backend.db.models import ExpenseReportModel, SupplierModel
 from datetime import datetime
 from sqlalchemy import func, cast, String, func as sa_func
@@ -41,8 +44,19 @@ class ExpenseReportClass:
     def _file_url(self, remote_path: str | None):
         if not remote_path:
             return None
-        # root_path del backend es /api
-        return f"/api/files/view/{remote_path}"
+
+        rp = str(remote_path).replace("\\", "/").lstrip("/")
+
+        # Si existe PUBLIC_BASE_URL, devolver URL absoluta (recomendado para front en otro dominio)
+        public_base = (os.environ.get("PUBLIC_BASE_URL") or "").strip().rstrip("/")
+        if public_base:
+            return f"{public_base}/api/files/view/{rp}"
+
+        # Fallback razonable por ambiente
+        if platform.system() == "Linux":
+            return f"https://api.kcgeneralsolutions.ca/api/files/view/{rp}"
+
+        return f"http://127.0.0.1:8000/api/files/view/{rp}"
 
     def _ensure_supplier_from_company(self, company_value):
         """
