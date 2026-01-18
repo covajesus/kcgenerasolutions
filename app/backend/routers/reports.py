@@ -184,16 +184,19 @@ def _build_expense_report_pdf(
     table_width = page_width - (margin_x * 2)  # 532
 
     # Columns
+    # Agregar columna Description en el PDF
     col_date = 90
     col_doc = 110
-    col_company = 240
-    col_amount = table_width - (col_date + col_doc + col_company)  # 92
+    col_company = 150
+    col_amount = 92
+    col_desc = table_width - (col_date + col_doc + col_company + col_amount)
 
     x0 = margin_x
     x1 = x0 + col_date
     x2 = x1 + col_doc
     x3 = x2 + col_company
-    x4 = x0 + table_width
+    x4 = x3 + col_desc
+    x5 = x0 + table_width
 
     title = "Expense Report"
     title_size = 18
@@ -211,6 +214,7 @@ def _build_expense_report_pdf(
         # En DB puede venir int (datos antiguos). Forzar a string siempre.
         doc_str = str(r.document_number) if r.document_number is not None else ""
         company = str(r.company) if r.company is not None else ""
+        desc = str(getattr(r, "description", "") or "")
 
         amount_value = _parse_amount(r.amount)
         if amount_value is not None:
@@ -228,15 +232,17 @@ def _build_expense_report_pdf(
         # Truncar para la tabla
         if len(doc_str) > 18:
             doc_str = doc_str[:18] + "..."
-        if len(company) > 34:
-            company = company[:34] + "..."
+        if len(company) > 24:
+            company = company[:24] + "..."
+        if len(desc) > 28:
+            desc = desc[:28] + "..."
         if len(amount) > 18:
             amount = amount[:18] + "..."
 
-        table_rows.append([date_str, doc_str, company, amount])
+        table_rows.append([date_str, doc_str, company, desc, amount])
 
     if not table_rows:
-        table_rows = [["", "", "(Sin resultados en el rango)", ""]]
+        table_rows = [["", "", "(Sin resultados en el rango)", "", ""]]
 
     # Pagination by rows available
     # Compute rows per page (leave footer area)
@@ -294,23 +300,24 @@ def _build_expense_report_pdf(
         cmds.append("0.7 w")
 
         # Outer border
-        cmds.append(f"{x0} {table_top} m {x4} {table_top} l S")
-        cmds.append(f"{x0} {table_bottom} m {x4} {table_bottom} l S")
+        cmds.append(f"{x0} {table_top} m {x5} {table_top} l S")
+        cmds.append(f"{x0} {table_bottom} m {x5} {table_bottom} l S")
         cmds.append(f"{x0} {table_bottom} m {x0} {table_top} l S")
-        cmds.append(f"{x4} {table_bottom} m {x4} {table_top} l S")
+        cmds.append(f"{x5} {table_bottom} m {x5} {table_top} l S")
 
         # Vertical lines
         cmds.append(f"{x1} {table_bottom} m {x1} {table_top} l S")
         cmds.append(f"{x2} {table_bottom} m {x2} {table_top} l S")
         cmds.append(f"{x3} {table_bottom} m {x3} {table_top} l S")
+        cmds.append(f"{x4} {table_bottom} m {x4} {table_top} l S")
 
         # Header bottom line
-        cmds.append(f"{x0} {header_bottom} m {x4} {header_bottom} l S")
+        cmds.append(f"{x0} {header_bottom} m {x5} {header_bottom} l S")
 
         # Row lines
         for i in range(1, len(chunk) + 1):
             y = header_bottom - (i * row_h)
-            cmds.append(f"{x0} {y} m {x4} {y} l S")
+            cmds.append(f"{x0} {y} m {x5} {y} l S")
 
         # Header labels (bold)
         cmds.append("BT")
@@ -318,29 +325,32 @@ def _build_expense_report_pdf(
         cmds.append(f"1 0 0 1 {x0 + 6} {table_top - 15} Tm (Date) Tj")
         cmds.append(f"1 0 0 1 {x1 + 6} {table_top - 15} Tm (Document #) Tj")
         cmds.append(f"1 0 0 1 {x2 + 6} {table_top - 15} Tm (Company) Tj")
-        cmds.append(f"1 0 0 1 {x3 + 6} {table_top - 15} Tm (Amount) Tj")
+        cmds.append(f"1 0 0 1 {x3 + 6} {table_top - 15} Tm (Description) Tj")
+        cmds.append(f"1 0 0 1 {x4 + 6} {table_top - 15} Tm (Amount) Tj")
         cmds.append("ET")
 
         # Rows (regular)
         cmds.append("BT")
         cmds.append("/F1 10 Tf")
-        for i, (c_date, c_doc, c_company, c_amount) in enumerate(chunk):
+        for i, (c_date, c_doc, c_company, c_desc, c_amount) in enumerate(chunk):
             y_text = header_bottom - (i * row_h) - 13
             c_date = _pdf_escape(c_date).encode("latin-1", errors="replace").decode("latin-1")
             c_doc = _pdf_escape(c_doc).encode("latin-1", errors="replace").decode("latin-1")
             c_company = _pdf_escape(c_company).encode("latin-1", errors="replace").decode("latin-1")
+            c_desc = _pdf_escape(c_desc).encode("latin-1", errors="replace").decode("latin-1")
             c_amount = _pdf_escape(c_amount).encode("latin-1", errors="replace").decode("latin-1")
 
             cmds.append(f"1 0 0 1 {x0 + 6} {y_text} Tm ({c_date}) Tj")
             cmds.append(f"1 0 0 1 {x1 + 6} {y_text} Tm ({c_doc}) Tj")
             cmds.append(f"1 0 0 1 {x2 + 6} {y_text} Tm ({c_company}) Tj")
-            cmds.append(f"1 0 0 1 {x3 + 6} {y_text} Tm ({c_amount}) Tj")
+            cmds.append(f"1 0 0 1 {x3 + 6} {y_text} Tm ({c_desc}) Tj")
+            cmds.append(f"1 0 0 1 {x4 + 6} {y_text} Tm ({c_amount}) Tj")
         cmds.append("ET")
 
         # TOTAL (solo en la última página)
         if is_last_page and total_amount_has_value:
             total_text = f"TOTAL: {_format_currency(total_amount)}"
-            total_x = x4 - 6 - _approx_text_width(total_text, 12)
+            total_x = x5 - 6 - _approx_text_width(total_text, 12)
             cmds.append("BT")
             cmds.append("/F2 12 Tf")
             cmds.append(f"1 0 0 1 {total_x:.2f} {table_bottom - 26} Tm ({_pdf_escape(total_text)}) Tj")
