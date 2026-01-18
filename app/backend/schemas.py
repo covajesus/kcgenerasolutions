@@ -138,6 +138,7 @@ class StoreExpenseReport(BaseModel):
     document_number: int
     company: str
     amount: str
+    description: Optional[str] = None
     document_date: Optional[datetime] = None
     file: Optional[str] = None
 
@@ -148,6 +149,7 @@ class StoreExpenseReport(BaseModel):
         document_number: int = Form(...),
         company: str = Form(...),
         amount: str = Form(...),
+        description: Optional[str] = Form(None),
         document_date: Optional[datetime] = Form(None),
     ):
         return cls(
@@ -155,6 +157,7 @@ class StoreExpenseReport(BaseModel):
             document_number=document_number,
             company=company,
             amount=amount,
+            description=description,
             document_date=document_date,
             file=None,
         )
@@ -164,6 +167,7 @@ class UpdateExpenseReport(BaseModel):
     document_number: int
     company: str
     amount: str
+    description: Optional[str] = None
     document_date: Optional[datetime] = None
     file: Optional[str] = None
 
@@ -174,6 +178,7 @@ class UpdateExpenseReport(BaseModel):
         document_number: int = Form(...),
         company: str = Form(...),
         amount: str = Form(...),
+        description: Optional[str] = Form(None),
         document_date: Optional[datetime] = Form(None),
     ):
         return cls(
@@ -181,6 +186,7 @@ class UpdateExpenseReport(BaseModel):
             document_number=document_number,
             company=company,
             amount=amount,
+            description=description,
             document_date=document_date,
             file=None,
         )

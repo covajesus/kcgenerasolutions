@@ -274,6 +274,7 @@ class ExpenseReportModel(Base):
     document_number = Column(Integer)
     company = Column(String(255))
     amount = Column(String(255))
+    description = Column(Text())
     document_date = Column(DateTime())
     file = Column(Text())
     added_date = Column(DateTime())

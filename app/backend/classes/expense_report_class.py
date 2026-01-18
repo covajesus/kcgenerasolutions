@@ -107,6 +107,7 @@ class ExpenseReportClass:
                     "document_number": expense_report.document_number,
                     "company": expense_report.company,
                     "amount": expense_report.amount,
+                    "description": getattr(expense_report, "description", None),
                     "document_date": expense_report.document_date.strftime("%Y-%m-%d %H:%M:%S") if expense_report.document_date else None,
                     "file": expense_report.file,
                     "file_url": self._file_url(expense_report.file),
@@ -132,6 +133,7 @@ class ExpenseReportClass:
                     "document_number": expense_report.document_number,
                     "company": expense_report.company,
                     "amount": expense_report.amount,
+                    "description": getattr(expense_report, "description", None),
                     "document_date": expense_report.document_date.strftime("%Y-%m-%d %H:%M:%S") if expense_report.document_date else None,
                     "file": expense_report.file,
                     "file_url": self._file_url(expense_report.file),
@@ -157,7 +159,8 @@ class ExpenseReportClass:
                     "expense_type_id": expense_report.expense_type_id,
                     "document_number": expense_report.document_number,
                     "company": expense_report.company,
-                    "amount": expense_report.amount
+                    "amount": expense_report.amount,
+                    "description": getattr(expense_report, "description", None),
                 } for expense_report in data]
 
             return {
@@ -260,6 +263,7 @@ class ExpenseReportClass:
             # Guardar company en la tabla suppliers (si no existe)
             self._ensure_supplier_from_company(existing_expense_report.company)
             existing_expense_report.amount = self._get_value(form_data, "amount")
+            existing_expense_report.description = self._get_value(form_data, "description")
             existing_expense_report.document_date = self._get_value(form_data, "document_date")
 
             # Solo actualizar archivo si viene en el payload
@@ -296,6 +300,7 @@ class ExpenseReportClass:
                 document_number=self._to_int_or_none(self._get_value(expense_report_inputs, "document_number")),
                 company=company_value,
                 amount=self._get_value(expense_report_inputs, "amount"),
+                description=self._get_value(expense_report_inputs, "description"),
                 document_date=self._get_value(expense_report_inputs, "document_date"),
                 file=self._get_value(expense_report_inputs, "file"),
                 added_date=datetime.utcnow(),
@@ -331,6 +336,7 @@ class ExpenseReportClass:
                     "document_number": data_query.document_number,
                     "company": data_query.company,
                     "amount": data_query.amount,
+                    "description": getattr(data_query, "description", None),
                     "document_date": data_query.document_date.strftime("%Y-%m-%d %H:%M:%S") if data_query.document_date else None,
                     "file": data_query.file,
                     "file_url": self._file_url(data_query.file),
