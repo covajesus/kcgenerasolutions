@@ -29,140 +29,13 @@ class SettingModel(Base):
     phone = Column(String(255))
     updated_date = Column(DateTime())
 
-class ShoppingModel(Base):
-    __tablename__ = 'shoppings'
-
-    id = Column(Integer, primary_key=True)
-    supplier_id = Column(Integer)
-    prepaid_status_id = Column(Integer)
-    status_id = Column(Integer)
-    shopping_number = Column(Integer)
-    email = Column(String(255))
-    total = Column(Float)
-    commission = Column(Float)
-    maritime_freight = Column(Float)
-    merchandise_insurance = Column(Float)
-    manifest_opening = Column(Float)
-    deconsolidation = Column(Float)
-    land_freight = Column(Float)
-    provision_funds = Column(Float)
-    port_charges = Column(Float)
-    tax_explosive_product = Column(Float)
-    honoraries = Column(Float)
-    physical_assessment_expenses = Column(Float)
-    administrative_expenses = Column(Float)
-    folder_processing = Column(Float)
-    valija_expenses = Column(Float)
-    wire_transfer_amount = Column(Float)
-    wire_transfer_date = Column(Date)
-    exchange_rate = Column(Integer)
-    extra_expenses = Column(Integer)
-    euro_value = Column(Integer)
-    payment_support = Column(String(255))
-    customs_company_support = Column(String(255))
-    maritime_freight_dollar = Column(Float)
-    merchandise_insurance_dollar = Column(Float)
-    manifest_opening_dollar = Column(Float)
-    deconsolidation_dollar = Column(Float)
-    land_freight_dollar = Column(Float)
-    provision_funds_dollar = Column(Float)
-    port_charges_dollar = Column(Float)
-    honoraries_dollar = Column(Float)
-    physical_assessment_expenses_dollar = Column(Float)
-    administrative_expenses_dollar = Column(Float)
-    folder_processing_dollar = Column(Float)
-    valija_expenses_dollar = Column(Float)
-    tax_explosive_product_dollar = Column(Float)
-    added_date = Column(DateTime())
-    updated_date = Column(DateTime())
-
-class ShoppingProductModel(Base):
-    __tablename__ = 'shoppings_products'
-
-    id = Column(Integer, primary_key=True)
-    shopping_id = Column(Integer)
-    product_id = Column(Integer)
-    unit_measure_id = Column(Integer)
-    quantity = Column(Integer)
-    quantity_to_buy = Column(Float)
-    original_unit_cost = Column(Float)
-    discount_percentage = Column(Integer)
-    final_unit_cost = Column(Float)
-    total_amount = Column(Float)
-    added_date = Column(DateTime())
-    updated_date = Column(DateTime())
-
 class SupplierModel(Base):
     __tablename__ = 'suppliers'
 
     id = Column(Integer, primary_key=True)
-    identification_number = Column(String(255))
     supplier = Column(String(255))
-    address = Column(Text())
     added_date = Column(DateTime())
     updated_date = Column(DateTime())
-
-class UnitMeasureModel(Base):
-    __tablename__ = 'unit_measures'
-
-    id = Column(Integer, primary_key=True)
-    unit_measure = Column(String(255))
-    added_date = Column(DateTime())
-    updated_date = Column(DateTime())
-
-class SaleModel(Base):
-    __tablename__ = 'sales'
-
-    id = Column(Integer, primary_key=True)
-    customer_id = Column(Integer)
-    shipping_method_id = Column(Integer)
-    dte_type_id = Column(Integer)
-    status_id = Column(Integer)
-    folio = Column(Integer, default=0)
-    subtotal = Column(Float)
-    tax = Column(Float)
-    shipping_cost = Column(Float, default=0)
-    total = Column(Float)
-    payment_support = Column(Text())
-    delivery_address = Column(Text())
-    added_date = Column(DateTime(), default=datetime.now)
-    updated_date = Column(DateTime(), default=datetime.now)
-
-class SaleProductModel(Base):
-    __tablename__ = 'sales_products'
-
-    id = Column(Integer, primary_key=True)
-    sale_id = Column(Integer)
-    product_id = Column(Integer)
-    inventory_movement_id = Column(Integer)
-    inventory_id = Column(Integer)
-    lot_item_id = Column(Integer)
-    quantity = Column(Integer)
-    price = Column(Integer)
-
-class BudgetModel(Base):
-    __tablename__ = 'budgets'
-
-    id = Column(Integer, primary_key=True)
-    customer_id = Column(Integer)
-    status_id = Column(Integer, default=0)
-    subtotal = Column(Integer)
-    shipping = Column(Integer, default=0)
-    tax = Column(Integer)
-    total = Column(Integer)
-    added_date = Column(DateTime(), default=datetime.now)
-    updated_date = Column(DateTime(), default=datetime.now)
-
-class BudgetProductModel(Base):
-    __tablename__ = 'budgets_products'
-
-    id = Column(Integer, primary_key=True)
-    budget_id = Column(Integer)
-    product_id = Column(Integer)
-    quantity = Column(Integer)
-    total = Column(Integer)
-    added_date = Column(DateTime(), default=datetime.now)
-    updated_date = Column(DateTime(), default=datetime.now)
 
 class CustomerModel(Base):
     __tablename__ = 'customers'
@@ -176,14 +49,6 @@ class CustomerModel(Base):
     address = Column(String(255))
     phone = Column(String(255))
     email = Column(String(255))
-    added_date = Column(DateTime())
-    updated_date = Column(DateTime())
-
-class LocationModel(Base):
-    __tablename__ = 'locations'
-
-    id = Column(Integer, primary_key=True)
-    location = Column(String(255))
     added_date = Column(DateTime())
     updated_date = Column(DateTime())
 
@@ -267,10 +132,8 @@ class UserModel(Base):
 
     id = Column(Integer, primary_key=True)
     rol_id = Column(Integer, ForeignKey('rols.id'))
-    rut = Column(String(255))
     full_name = Column(String(255))
     email = Column(String(255))
-    phone = Column(Text())
     hashed_password = Column(Text())
     added_date = Column(DateTime())
     updated_date = Column(DateTime())
@@ -406,6 +269,7 @@ class ExpenseReportModel(Base):
     __tablename__ = 'expense_reports'
 
     id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
     expense_type_id = Column(Integer, ForeignKey('expense_types.id'))
     document_number = Column(Integer)
     company = Column(String(255))

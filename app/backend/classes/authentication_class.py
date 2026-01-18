@@ -15,7 +15,15 @@ class AuthenticationClass:
         self.db = db
 
     def authenticate_shopping_login(self, identification_number):
-        user = UserClass(self.db).get('rut', identification_number)
+        # Login de cliente público: viene por RUT/identification_number,
+        # pero el usuario se busca por email (la tabla `users` no tiene `rut`).
+        customer = CustomerClass(self.db).get_by_identification_number(identification_number)
+        if isinstance(customer, dict) and customer.get("status") == "error":
+            raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+        if not getattr(customer, "email", None):
+            raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+
+        user = UserClass(self.db).get('email', customer.email)
         
         # Verificar si user es un string de error
         if isinstance(user, str) and (user.startswith("Error:") or user.startswith("No se encontraron")):
@@ -112,7 +120,7 @@ class AuthenticationClass:
             raise HTTPException(status_code=401, detail="Usuario admin no encontrado")
 
         # Generar el token esperado
-        token_string = f"{budget_id}_{admin_user.rut}_{admin_user.id}"
+        token_string = f"{budget_id}_{admin_user.email}_{admin_user.id}"
         expected_token = hashlib.md5(token_string.encode()).hexdigest()
 
         # Validar el token
@@ -121,12 +129,11 @@ class AuthenticationClass:
 
         # Generar token JWT para el usuario
         token_expires = timedelta(minutes=9999999)
-        jwt_token = self.create_token({'sub': str(admin_user.rut)}, token_expires)
+        jwt_token = self.create_token({'sub': str(admin_user.email)}, token_expires)
 
         return {
             "access_token": jwt_token,
             "user_id": admin_user.id,
-            "rut": admin_user.rut,
             "rol_id": admin_user.rol_id,
             "full_name": admin_user.full_name,
             "email": admin_user.email,

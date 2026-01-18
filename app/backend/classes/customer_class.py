@@ -171,22 +171,22 @@ class CustomerClass:
             self.db.flush()
             self.db.refresh(new_customer)
 
-            # Verificar si ya existe un usuario con este RUT
-            existing_user = (
-                self.db.query(UserModel)
-                .filter(UserModel.rut == customer_inputs.identification_number)
-                .first()
-            )
+            # Verificar si ya existe un usuario asociado (por email)
+            existing_user = None
+            if customer_inputs.email:
+                existing_user = (
+                    self.db.query(UserModel)
+                    .filter(UserModel.email == customer_inputs.email)
+                    .first()
+                )
 
             # Crear usuario solo si no existe
-            if not existing_user:
+            if not existing_user and customer_inputs.email:
                 new_user = UserModel(
-                    rut=customer_inputs.identification_number,
                     rol_id=5,  # Rol de cliente público
                     full_name=customer_inputs.social_reason,
                     hashed_password=generate_bcrypt_hash('123456'),  # Contraseña por defecto
                     email=customer_inputs.email,
-                    phone=customer_inputs.phone,
                     added_date=datetime.now(),
                     updated_date=datetime.now()
                 )
@@ -330,8 +330,10 @@ class CustomerClass:
             if not customer:
                 return {"status": "error", "message": "Cliente no encontrado"}
             
-            # Buscar el usuario asociado por RUT
-            user = self.db.query(UserModel).filter(UserModel.rut == rut).first()
+            # Buscar el usuario asociado (por email del cliente)
+            user = None
+            if customer.email:
+                user = self.db.query(UserModel).filter(UserModel.email == customer.email).first()
             
             # Obtener información de región y comuna por separado
             region = None
@@ -368,10 +370,8 @@ class CustomerClass:
                 user_data = {
                     "id": user.id,
                     "rol_id": user.rol_id,
-                    "rut": user.rut,
                     "full_name": user.full_name,
                     "email": user.email,
-                    "phone": user.phone,
                     "added_date": user.added_date.strftime("%Y-%m-%d %H:%M:%S") if user.added_date else None,
                     "updated_date": user.updated_date.strftime("%Y-%m-%d %H:%M:%S") if user.updated_date else None
                 }
@@ -428,8 +428,10 @@ class CustomerClass:
             if not customer:
                 return "No data found"
             
-            # Buscar el usuario asociado por RUT
-            user = self.db.query(UserModel).filter(UserModel.rut == customer.identification_number).first()
+            # Buscar el usuario asociado (por email)
+            user = None
+            if customer.email:
+                user = self.db.query(UserModel).filter(UserModel.email == customer.email).first()
             
             # Eliminar el cliente
             self.db.delete(customer)

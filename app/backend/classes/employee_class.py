@@ -13,7 +13,6 @@ class EmployeeClass:
                 self.db.query(
                     EmployeeModel.id, 
                     UserModel.full_name,
-                    UserModel.phone,
                 )
                 .join(UserModel, UserModel.id == EmployeeModel.user_id, isouter=True)
                 .order_by(UserModel.full_name)
@@ -37,7 +36,6 @@ class EmployeeClass:
                     "until_visit_date_time": visit.until_visit_date_time,
                     "added_date": visit.added_date.strftime("%Y-%m-%d %H:%M:%S") if visit.added_date else None,
                     "full_name": visit.full_name,
-                    "phone": visit.phone,
                     "status_id": visit.status_id
                 } for visit in data]
 
@@ -58,7 +56,6 @@ class EmployeeClass:
                     "until_visit_date_time": visit.until_visit_date_time,
                     "added_date": visit.added_date.strftime("%Y-%m-%d %H:%M:%S") if visit.added_date else None,
                     "full_name": visit.full_name,
-                    "phone": visit.phone,
                     "status_id": visit.status_id
                 } for visit in data]
 

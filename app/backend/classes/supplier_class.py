@@ -6,22 +6,45 @@ class SupplierClass:
     def __init__(self, db):
         self.db = db
 
+    def search(self, supplier_name: str):
+        try:
+            name = (supplier_name or "").strip()
+            if not name:
+                return {"status": "error", "message": "Debe enviar supplier_name"}
+
+            data = (
+                self.db.query(SupplierModel)
+                .filter(SupplierModel.supplier.ilike(f"%{name}%"))
+                .order_by(SupplierModel.id.desc())
+                .all()
+            )
+
+            serialized_data = [{
+                "id": supplier.id,
+                "supplier": supplier.supplier,
+                "added_date": supplier.added_date.strftime("%Y-%m-%d %H:%M:%S") if supplier.added_date else None,
+                "updated_date": supplier.updated_date.strftime("%Y-%m-%d %H:%M:%S") if supplier.updated_date else None,
+            } for supplier in data]
+
+            return {"data": serialized_data}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
     def get_all(self, page=0, items_per_page=10):
         try:
             query = (
                 self.db.query(
                     SupplierModel.id,
-                    SupplierModel.identification_number,
                     SupplierModel.supplier,
-                    SupplierModel.address,
-                    SupplierModel.added_date
+                    SupplierModel.added_date,
+                    SupplierModel.updated_date,
                 )
                 .order_by(SupplierModel.id)
             )
 
             if page > 0:
                 total_items = query.count()
-                total_pages = (total_items + items_per_page - 1)
+                total_pages = (total_items + items_per_page - 1) // items_per_page
 
                 if page < 1 or page > total_pages:
                     return {"status": "error", "message": "Invalid page number"}
@@ -33,10 +56,9 @@ class SupplierClass:
 
                 serialized_data = [{
                     "id": supplier.id,
-                    "identification_number": supplier.identification_number,
                     "supplier": supplier.supplier,
-                    "address": supplier.address,
-                    "added_date": supplier.added_date.strftime("%Y-%m-%d %H:%M:%S")
+                    "added_date": supplier.added_date.strftime("%Y-%m-%d %H:%M:%S") if supplier.added_date else None,
+                    "updated_date": supplier.updated_date.strftime("%Y-%m-%d %H:%M:%S") if supplier.updated_date else None,
                 } for supplier in data]
 
                 return {
@@ -52,10 +74,9 @@ class SupplierClass:
 
                 serialized_data = [{
                     "id": supplier.id,
-                    "identification_number": supplier.identification_number,
                     "supplier": supplier.supplier,
-                    "address": supplier.address,
-                    "added_date": supplier.added_date.strftime("%Y-%m-%d %H:%M:%S")
+                    "added_date": supplier.added_date.strftime("%Y-%m-%d %H:%M:%S") if supplier.added_date else None,
+                    "updated_date": supplier.updated_date.strftime("%Y-%m-%d %H:%M:%S") if supplier.updated_date else None,
                 } for supplier in data]
 
                 return serialized_data
@@ -69,9 +90,7 @@ class SupplierClass:
             data = (
                 self.db.query(
                     SupplierModel.id,
-                    SupplierModel.identification_number,
                     SupplierModel.supplier,
-                    SupplierModel.address,
                     SupplierModel.added_date
                 )
                 .order_by(SupplierModel.id)
@@ -82,10 +101,8 @@ class SupplierClass:
 
             serialized_data = [{
                     "id": supplier.id,
-                    "identification_number": supplier.identification_number,
                     "supplier": supplier.supplier,
-                    "address": supplier.address,
-                    "added_date": supplier.added_date.strftime("%Y-%m-%d %H:%M:%S")
+                    "added_date": supplier.added_date.strftime("%Y-%m-%d %H:%M:%S") if supplier.added_date else None
                 } for supplier in data]
 
             return {
@@ -98,9 +115,7 @@ class SupplierClass:
     def store(self, supplier_inputs):
         try:
             new_supplier = SupplierModel(
-                identification_number=supplier_inputs.identification_number,
                 supplier=supplier_inputs.supplier,
-                address=supplier_inputs.address,
                 added_date=datetime.now(),
                 updated_date=datetime.now()
             )
@@ -125,9 +140,7 @@ class SupplierClass:
             return "No data found"
 
         try:
-            existing_supplier.identification_number = supplier_inputs.identification_number
             existing_supplier.supplier = supplier_inputs.supplier
-            existing_supplier.address = supplier_inputs.address
             existing_supplier.updated_date = datetime.utcnow()
 
             self.db.commit()
@@ -143,18 +156,16 @@ class SupplierClass:
             data_query = self.db.query(
                 SupplierModel.id, 
                 SupplierModel.supplier,
-                SupplierModel.identification_number,
-                SupplierModel.address,
                 SupplierModel.added_date,
+                SupplierModel.updated_date,
             ).filter(SupplierModel.id == id).first()
 
             if data_query:
                 supplier_data = {
                     "id": data_query.id,
                     "supplier": data_query.supplier,
-                    "identification_number": data_query.identification_number,
-                    "address": data_query.address,
-                    "added_date": data_query.added_date.strftime("%Y-%m-%d %H:%M:%S") if data_query.added_date else None
+                    "added_date": data_query.added_date.strftime("%Y-%m-%d %H:%M:%S") if data_query.added_date else None,
+                    "updated_date": data_query.updated_date.strftime("%Y-%m-%d %H:%M:%S") if data_query.updated_date else None,
                 }
 
                 return {"supplier_data": supplier_data}

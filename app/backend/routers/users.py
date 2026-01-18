@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.backend.db.database import get_db
 from sqlalchemy.orm import Session
-from app.backend.schemas import User, UpdateUser, UserLogin, RecoverUser, ConfirmEmail, UserList
+from app.backend.schemas import StoreUser, UpdateUser, UserLogin, RecoverUser, ConfirmEmail, UserList
 from app.backend.classes.user_class import UserClass
 from app.backend.auth.auth_user import get_current_active_user
 
@@ -12,12 +12,12 @@ users = APIRouter(
 
 @users.post("/")
 def index(user: UserList, session_user: UserLogin = Depends(get_current_active_user), db: Session = Depends(get_db)):
-    data = UserClass(db).get_all(user.rut, user.page)
+    data = UserClass(db).get_all(user.email, user.page)
 
     return {"message": data}
 
 @users.post("/store")
-def store(user:User, session_user: UserLogin = Depends(get_current_active_user), db: Session = Depends(get_db)):
+def store(user: StoreUser, session_user: UserLogin = Depends(get_current_active_user), db: Session = Depends(get_db)):
     user_inputs = user.dict()
     data = UserClass(db).store(user_inputs)
 

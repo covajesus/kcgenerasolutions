@@ -20,13 +20,13 @@ def hash_password(password: str) -> str:
 def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         decoded_token = jwt.decode(token, os.environ['SECRET_KEY'], algorithms=[os.environ['ALGORITHM']])
-        username = decoded_token.get("sub")
-        if username is None:
+        email = decoded_token.get("sub")
+        if email is None:
             raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
     except JWTError:
         raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
 
-    user = get_user(username)
+    user = get_user(email)
 
     if user is None or user == "":
         raise HTTPException(status_code=401, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
@@ -35,11 +35,11 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 def get_current_active_user(current_user: UserModel = Depends(get_current_user)):
     return current_user
 
-def get_user(rut):
+def get_user(email):
     db: Session = next(get_db())
 
     user = db.query(UserModel). \
-                    filter(UserModel.rut == rut). \
+                    filter(UserModel.email == email). \
                     first()
     
     if not user:
@@ -53,4 +53,5 @@ def generate_bcrypt_hash(input_string):
 
     hashed_string = bcrypt.hashpw(encoded_string, salt)
 
-    return hashed_string
+    # Guardar como string para compatibilidad con columnas TEXT/VARCHAR
+    return hashed_string.decode('utf-8')

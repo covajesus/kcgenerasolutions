@@ -25,13 +25,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     print(user)
     rol = RolClass(db).get('id', user["user_data"]["rol_id"])
     token_expires = timedelta(minutes=9999999)
-    token = AuthenticationClass(db).create_token({'sub': str(user["user_data"]["rut"])}, token_expires)
+    token = AuthenticationClass(db).create_token({'sub': str(user["user_data"]["email"])}, token_expires)
     expires_in_seconds = token_expires.total_seconds()
 
     return {
         "access_token": token,
         "user_id": user["user_data"]["id"],
-        "rut": user["user_data"]["rut"],
         "rol_id": user["user_data"]["rol_id"],
         "rol": rol.rol,
         "full_name": user["user_data"]["full_name"],
@@ -44,14 +43,14 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 def logout(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = AuthenticationClass(db).authenticate_user(form_data.username, form_data.password)
     access_token_expires = timedelta(minutes=9999999)
-    access_token_jwt = AuthenticationClass(db).create_token({'sub': str(user.rut)}, access_token_expires)
+    access_token_jwt = AuthenticationClass(db).create_token({'sub': str(user["user_data"]["email"])}, access_token_expires)
 
     return {
         "access_token": access_token_jwt, 
-        "rut": user.rut,
-        "visual_rut": user.visual_rut,
-        "rol_id": user.rol_id,
-        "nickname": user.nickname,
+        "user_id": user["user_data"]["id"],
+        "rol_id": user["user_data"]["rol_id"],
+        "full_name": user["user_data"]["full_name"],
+        "email": user["user_data"]["email"],
         "token_type": "bearer"
     }
 
@@ -78,13 +77,12 @@ def shopping_login(
     user = AuthenticationClass(db).authenticate_shopping_login(user_rut)
     rol = RolClass(db).get('id', user["user_data"]["rol_id"])
     token_expires = timedelta(minutes=120)
-    token = AuthenticationClass(db).create_token({'sub': str(user["user_data"]["rut"])}, token_expires)
+    token = AuthenticationClass(db).create_token({'sub': str(user["user_data"]["email"])}, token_expires)
     expires_in_seconds = token_expires.total_seconds()
 
     return {
         "access_token": token,
         "user_id": user["user_data"]["id"],
-        "rut": user["user_data"]["rut"],
         "rol_id": user["user_data"]["rol_id"],
         "rol": rol.rol,
         "full_name": user["user_data"]["full_name"],
@@ -100,7 +98,7 @@ def refresh_token(
 ):
     # Generar nuevo token con misma data de usuario
     token_expires = timedelta(minutes=30)
-    token = AuthenticationClass(db).create_token({'sub': str(session_user.rut)}, token_expires)
+    token = AuthenticationClass(db).create_token({'sub': str(session_user.email)}, token_expires)
     expires_in_seconds = token_expires.total_seconds()
 
     # También puedes retornar información adicional si la necesitas
@@ -108,7 +106,6 @@ def refresh_token(
 
     return {
         "access_token": token,
-        "rut": session_user.rut,
         "rol_id": session_user.rol_id,
         "rol": rol.rol,
         "full_name": session_user.full_name,
@@ -133,7 +130,6 @@ def budget_login(
         return {
             "access_token": data["access_token"],
             "user_id": data["user_id"],
-            "rut": data["rut"],
             "rol_id": data["rol_id"],
             "rol": rol.rol,
             "full_name": data["full_name"],
