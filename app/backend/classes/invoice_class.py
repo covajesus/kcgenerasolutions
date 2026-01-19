@@ -45,6 +45,7 @@ class InvoiceClass:
 
                 serialized_data = [{
                     "id": inv.id,
+                    "declared_status_id": getattr(inv, "declared_status_id", None),
                     "invoice_number": inv.invoice_number,
                     "company": inv.company,
                     "file": inv.file,
@@ -65,6 +66,7 @@ class InvoiceClass:
             data = base_query.all()
             return [{
                 "id": inv.id,
+                "declared_status_id": getattr(inv, "declared_status_id", None),
                 "invoice_number": inv.invoice_number,
                 "company": inv.company,
                 "file": inv.file,
@@ -83,6 +85,7 @@ class InvoiceClass:
             return {
                 "data": [{
                     "id": inv.id,
+                    "declared_status_id": getattr(inv, "declared_status_id", None),
                     "invoice_number": inv.invoice_number,
                     "company": inv.company,
                     "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
@@ -119,6 +122,7 @@ class InvoiceClass:
 
                 serialized_data = [{
                     "id": inv.id,
+                    "declared_status_id": getattr(inv, "declared_status_id", None),
                     "invoice_number": inv.invoice_number,
                     "company": inv.company,
                     "file": inv.file,
@@ -139,6 +143,7 @@ class InvoiceClass:
             data = q.all()
             return [{
                 "id": inv.id,
+                "declared_status_id": getattr(inv, "declared_status_id", None),
                 "invoice_number": inv.invoice_number,
                 "company": inv.company,
                 "file": inv.file,
@@ -153,6 +158,14 @@ class InvoiceClass:
 
     def store(self, payload: dict):
         try:
+            declared_status_id = payload.get("declared_status_id")
+            if declared_status_id is None or str(declared_status_id).strip() == "":
+                return {"status": "error", "message": "declared_status_id es requerido"}
+            try:
+                declared_status_id = int(declared_status_id)
+            except Exception:
+                return {"status": "error", "message": "declared_status_id inválido"}
+
             inv_num = payload.get("invoice_number")
             if inv_num is None or str(inv_num).strip() == "":
                 return {"status": "error", "message": "invoice_number es requerido"}
@@ -162,6 +175,7 @@ class InvoiceClass:
                 return {"status": "error", "message": "invoice_number inválido"}
 
             inv = InvoiceModel(
+                declared_status_id=declared_status_id,
                 invoice_number=inv_num,
                 company=str(payload.get("company") or ""),
                 file=payload.get("file"),
@@ -178,6 +192,7 @@ class InvoiceClass:
                 "file": inv.file,
                 "file_url": self._file_url(inv.file),
                 "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
+                "declared_status_id": getattr(inv, "declared_status_id", None),
             }
         except Exception as e:
             self.db.rollback()
@@ -189,6 +204,14 @@ class InvoiceClass:
             return "No data found"
 
         try:
+            declared_status_id = payload.get("declared_status_id")
+            if declared_status_id is None or str(declared_status_id).strip() == "":
+                return {"status": "error", "message": "declared_status_id es requerido"}
+            try:
+                inv.declared_status_id = int(declared_status_id)
+            except Exception:
+                return {"status": "error", "message": "declared_status_id inválido"}
+
             inv_num = payload.get("invoice_number")
             if inv_num is None or str(inv_num).strip() == "":
                 return {"status": "error", "message": "invoice_number es requerido"}
@@ -211,6 +234,7 @@ class InvoiceClass:
                 "file": inv.file,
                 "file_url": self._file_url(inv.file),
                 "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
+                "declared_status_id": getattr(inv, "declared_status_id", None),
             }
         except Exception as e:
             self.db.rollback()
@@ -224,6 +248,7 @@ class InvoiceClass:
             return {
                 "invoice_data": {
                     "id": inv.id,
+                    "declared_status_id": getattr(inv, "declared_status_id", None),
                     "invoice_number": inv.invoice_number,
                     "company": inv.company,
                     "file": inv.file,

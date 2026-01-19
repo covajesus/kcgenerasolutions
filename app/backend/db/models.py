@@ -284,6 +284,7 @@ class InvoiceModel(Base):
     __tablename__ = 'invoices'
 
     id = Column(Integer, primary_key=True)
+    declared_status_id = Column(Integer)
     invoice_number = Column(Integer)
     company = Column(String(255))
     file = Column(Text())

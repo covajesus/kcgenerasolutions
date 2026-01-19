@@ -199,6 +199,7 @@ class InvoiceSearch(BaseModel):
     invoice_number: Optional[str] = None
 
 class StoreInvoice(BaseModel):
+    declared_status_id: int
     invoice_number: int
     company: str
     invoice_date: Optional[date] = None
@@ -207,11 +208,13 @@ class StoreInvoice(BaseModel):
     @classmethod
     def as_form(
         cls,
+        declared_status_id: int = Form(...),
         invoice_number: int = Form(...),
         company: str = Form(...),
         invoice_date: Optional[date] = Form(None),
     ):
         return cls(
+            declared_status_id=declared_status_id,
             invoice_number=invoice_number,
             company=company,
             invoice_date=invoice_date,
@@ -219,6 +222,7 @@ class StoreInvoice(BaseModel):
         )
 
 class UpdateInvoice(BaseModel):
+    declared_status_id: int
     invoice_number: int
     company: str
     invoice_date: Optional[date] = None
@@ -227,11 +231,13 @@ class UpdateInvoice(BaseModel):
     @classmethod
     def as_form(
         cls,
+        declared_status_id: int = Form(...),
         invoice_number: int = Form(...),
         company: str = Form(...),
         invoice_date: Optional[date] = Form(None),
     ):
         return cls(
+            declared_status_id=declared_status_id,
             invoice_number=invoice_number,
             company=company,
             invoice_date=invoice_date,
