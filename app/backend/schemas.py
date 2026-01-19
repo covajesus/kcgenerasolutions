@@ -202,6 +202,7 @@ class StoreInvoice(BaseModel):
     declared_status_id: int
     invoice_number: int
     company: str
+    amount: str
     invoice_date: Optional[date] = None
     file: Optional[str] = None
 
@@ -211,12 +212,14 @@ class StoreInvoice(BaseModel):
         declared_status_id: int = Form(...),
         invoice_number: int = Form(...),
         company: str = Form(...),
+        amount: str = Form(...),
         invoice_date: Optional[date] = Form(None),
     ):
         return cls(
             declared_status_id=declared_status_id,
             invoice_number=invoice_number,
             company=company,
+            amount=amount,
             invoice_date=invoice_date,
             file=None,
         )
@@ -225,6 +228,7 @@ class UpdateInvoice(BaseModel):
     declared_status_id: int
     invoice_number: int
     company: str
+    amount: str
     invoice_date: Optional[date] = None
     file: Optional[str] = None
 
@@ -234,12 +238,14 @@ class UpdateInvoice(BaseModel):
         declared_status_id: int = Form(...),
         invoice_number: int = Form(...),
         company: str = Form(...),
+        amount: str = Form(...),
         invoice_date: Optional[date] = Form(None),
     ):
         return cls(
             declared_status_id=declared_status_id,
             invoice_number=invoice_number,
             company=company,
+            amount=amount,
             invoice_date=invoice_date,
             file=None,
         )
@@ -254,6 +260,7 @@ class BudgetSearch(BaseModel):
 class StoreBudget(BaseModel):
     budget_number: str
     company: str
+    amount: str
     budget_date: Optional[date] = None
     file: Optional[str] = None
 
@@ -262,11 +269,13 @@ class StoreBudget(BaseModel):
         cls,
         budget_number: str = Form(...),
         company: str = Form(...),
+        amount: str = Form(...),
         budget_date: Optional[date] = Form(None),
     ):
         return cls(
             budget_number=budget_number,
             company=company,
+            amount=amount,
             budget_date=budget_date,
             file=None,
         )
@@ -274,6 +283,7 @@ class StoreBudget(BaseModel):
 class UpdateBudget(BaseModel):
     budget_number: str
     company: str
+    amount: str
     budget_date: Optional[date] = None
     file: Optional[str] = None
 
@@ -282,11 +292,13 @@ class UpdateBudget(BaseModel):
         cls,
         budget_number: str = Form(...),
         company: str = Form(...),
+        amount: str = Form(...),
         budget_date: Optional[date] = Form(None),
     ):
         return cls(
             budget_number=budget_number,
             company=company,
+            amount=amount,
             budget_date=budget_date,
             file=None,
         )

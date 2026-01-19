@@ -48,6 +48,7 @@ class InvoiceClass:
                     "declared_status_id": getattr(inv, "declared_status_id", None),
                     "invoice_number": inv.invoice_number,
                     "company": inv.company,
+                    "amount": getattr(inv, "amount", None),
                     "file": inv.file,
                     "file_url": self._file_url(inv.file),
                     "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
@@ -69,6 +70,7 @@ class InvoiceClass:
                 "declared_status_id": getattr(inv, "declared_status_id", None),
                 "invoice_number": inv.invoice_number,
                 "company": inv.company,
+                "amount": getattr(inv, "amount", None),
                 "file": inv.file,
                 "file_url": self._file_url(inv.file),
                 "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
@@ -88,6 +90,7 @@ class InvoiceClass:
                     "declared_status_id": getattr(inv, "declared_status_id", None),
                     "invoice_number": inv.invoice_number,
                     "company": inv.company,
+                    "amount": getattr(inv, "amount", None),
                     "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
                 } for inv in data]
             }
@@ -125,6 +128,7 @@ class InvoiceClass:
                     "declared_status_id": getattr(inv, "declared_status_id", None),
                     "invoice_number": inv.invoice_number,
                     "company": inv.company,
+                    "amount": getattr(inv, "amount", None),
                     "file": inv.file,
                     "file_url": self._file_url(inv.file),
                     "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
@@ -146,6 +150,7 @@ class InvoiceClass:
                 "declared_status_id": getattr(inv, "declared_status_id", None),
                 "invoice_number": inv.invoice_number,
                 "company": inv.company,
+                "amount": getattr(inv, "amount", None),
                 "file": inv.file,
                 "file_url": self._file_url(inv.file),
                 "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
@@ -178,6 +183,7 @@ class InvoiceClass:
                 declared_status_id=declared_status_id,
                 invoice_number=inv_num,
                 company=str(payload.get("company") or ""),
+                amount=str(payload.get("amount") or ""),
                 file=payload.get("file"),
                 invoice_date=payload.get("invoice_date"),
                 added_date=datetime.utcnow(),
@@ -193,6 +199,7 @@ class InvoiceClass:
                 "file_url": self._file_url(inv.file),
                 "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
                 "declared_status_id": getattr(inv, "declared_status_id", None),
+                "amount": getattr(inv, "amount", None),
             }
         except Exception as e:
             self.db.rollback()
@@ -221,6 +228,7 @@ class InvoiceClass:
                 return {"status": "error", "message": "invoice_number inválido"}
 
             inv.company = str(payload.get("company") or "")
+            inv.amount = str(payload.get("amount") or "")
             if isinstance(payload, dict) and "file" in payload and payload.get("file") is not None:
                 inv.file = payload.get("file")
             if isinstance(payload, dict) and "invoice_date" in payload:
@@ -235,6 +243,7 @@ class InvoiceClass:
                 "file_url": self._file_url(inv.file),
                 "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,
                 "declared_status_id": getattr(inv, "declared_status_id", None),
+                "amount": getattr(inv, "amount", None),
             }
         except Exception as e:
             self.db.rollback()
@@ -251,6 +260,7 @@ class InvoiceClass:
                     "declared_status_id": getattr(inv, "declared_status_id", None),
                     "invoice_number": inv.invoice_number,
                     "company": inv.company,
+                    "amount": getattr(inv, "amount", None),
                     "file": inv.file,
                     "file_url": self._file_url(inv.file),
                     "invoice_date": inv.invoice_date.strftime("%Y-%m-%d") if getattr(inv, "invoice_date", None) else None,

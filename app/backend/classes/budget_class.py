@@ -47,6 +47,7 @@ class BudgetClass:
                     "id": b.id,
                     "budget_number": b.budget_number,
                     "company": b.company,
+                    "amount": getattr(b, "amount", None),
                     "file": b.file,
                     "file_url": self._file_url(b.file),
                     "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
@@ -67,6 +68,7 @@ class BudgetClass:
                 "id": b.id,
                 "budget_number": b.budget_number,
                 "company": b.company,
+                "amount": getattr(b, "amount", None),
                 "file": b.file,
                 "file_url": self._file_url(b.file),
                 "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
@@ -85,6 +87,7 @@ class BudgetClass:
                     "id": b.id,
                     "budget_number": b.budget_number,
                     "company": b.company,
+                    "amount": getattr(b, "amount", None),
                     "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
                 } for b in data]
             }
@@ -120,6 +123,7 @@ class BudgetClass:
                     "id": b.id,
                     "budget_number": b.budget_number,
                     "company": b.company,
+                    "amount": getattr(b, "amount", None),
                     "file": b.file,
                     "file_url": self._file_url(b.file),
                     "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
@@ -140,6 +144,7 @@ class BudgetClass:
                 "id": b.id,
                 "budget_number": b.budget_number,
                 "company": b.company,
+                "amount": getattr(b, "amount", None),
                 "file": b.file,
                 "file_url": self._file_url(b.file),
                 "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
@@ -155,6 +160,7 @@ class BudgetClass:
             b = BudgetModel(
                 budget_number=str(payload.get("budget_number") or ""),
                 company=str(payload.get("company") or ""),
+                amount=str(payload.get("amount") or ""),
                 file=payload.get("file"),
                 budget_date=payload.get("budget_date"),
                 added_date=datetime.utcnow(),
@@ -169,6 +175,7 @@ class BudgetClass:
                 "file": b.file,
                 "file_url": self._file_url(b.file),
                 "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
+                "amount": getattr(b, "amount", None),
             }
         except Exception as e:
             self.db.rollback()
@@ -182,6 +189,7 @@ class BudgetClass:
         try:
             b.budget_number = str(payload.get("budget_number") or "")
             b.company = str(payload.get("company") or "")
+            b.amount = str(payload.get("amount") or "")
             if isinstance(payload, dict) and "file" in payload and payload.get("file") is not None:
                 b.file = payload.get("file")
             if isinstance(payload, dict) and "budget_date" in payload:
@@ -195,6 +203,7 @@ class BudgetClass:
                 "file": b.file,
                 "file_url": self._file_url(b.file),
                 "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
+                "amount": getattr(b, "amount", None),
             }
         except Exception as e:
             self.db.rollback()
@@ -210,6 +219,7 @@ class BudgetClass:
                     "id": b.id,
                     "budget_number": b.budget_number,
                     "company": b.company,
+                    "amount": getattr(b, "amount", None),
                     "file": b.file,
                     "file_url": self._file_url(b.file),
                     "budget_date": b.budget_date.strftime("%Y-%m-%d") if getattr(b, "budget_date", None) else None,
