@@ -20,18 +20,9 @@ class ExpenseReportClass:
 
     def _apply_user_scope(self, query, session_user):
         """
-        - rol_id == 1: ve todo
-        - rol_id == 2 (u otros): filtra por user_id
+        Scope deshabilitado: todos los usuarios ven todos los expense_reports.
         """
-        if session_user is None:
-            return query
-        if self._is_admin(session_user):
-            return query
-        user_id = getattr(session_user, "id", None)
-        # si no viene user_id en sesión, no devolver nada por seguridad
-        if user_id is None:
-            return query.filter(False)
-        return query.filter(ExpenseReportModel.user_id == user_id)
+        return query
 
     def _to_int_or_none(self, value):
         if value is None:

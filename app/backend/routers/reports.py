@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 import re
+from decimal import Decimal, InvalidOperation
 
 
 from app.backend.auth.auth_user import get_current_active_user
@@ -58,7 +59,7 @@ def _approx_text_width(text: str, font_size: int) -> float:
     return max(0.0, len(text or "") * font_size * 0.5)
 
 
-def _parse_amount(value) -> float | None:
+def _parse_amount(value) -> Decimal | None:
     """
     Convierte montos guardados como string a número.
 
@@ -92,16 +93,14 @@ def _parse_amount(value) -> float | None:
         cleaned = cleaned.replace(",", ".")
 
     try:
-        return float(cleaned)
-    except Exception:
+        return Decimal(cleaned)
+    except (InvalidOperation, Exception):
         return None
 
 
-def _format_currency(amount: float) -> str:
-    # Inglés: miles con coma, decimales con punto
-    if amount == int(amount):
-        return f"${int(amount):,}"
-    return f"${amount:,.2f}"
+def _format_currency(amount: Decimal) -> str:
+    # Sin redondeo: se imprime con todos los decimales que traiga el valor.
+    return f"$ {format(amount, ',f')}"
 
 
 def _build_expense_report_pdf(
@@ -159,7 +158,7 @@ def _build_expense_report_pdf(
 
     # Prepare line strings
     table_rows: List[List[str]] = []
-    total_amount = 0.0
+    total_amount = Decimal("0")
     total_amount_has_value = False
     for r in rows:
         date_str = r.document_date.strftime("%Y-%m-%d") if r.document_date else ""
