@@ -477,14 +477,15 @@ def totals(
     invoices_total_minus_13 = invoices_total - invoices_13_percent
     difference_vs_expense_reports = invoices_total_minus_13 - expense_reports_total
 
-    # Devolver como string para no perder precisión / no redondear
+    # Devolver solo 4 columnas (como strings para no perder precisión / no redondear)
     return {
-        "since_date": since_dt.strftime("%Y-%m-%d %H:%M:%S"),
-        "until_date": end_dt.strftime("%Y-%m-%d %H:%M:%S"),
-        "invoices_total": format(invoices_total, "f"),
-        "invoices_13_percent": format(invoices_13_percent, "f"),
-        "invoices_total_minus_13": format(invoices_total_minus_13, "f"),
-        "expense_reports_total": format(expense_reports_total, "f"),
-        "difference_vs_expense_reports": format(difference_vs_expense_reports, "f"),
+        # total invoices menos 13%
+        "net_income": format(invoices_total_minus_13, "f"),
+        # sumatoria del 13%
+        "hst": format(invoices_13_percent, "f"),
+        # suma de expense reports
+        "expenses": format(expense_reports_total, "f"),
+        # ganancia = net_income - expenses
+        "total_profit": format(difference_vs_expense_reports, "f"),
     }
 
