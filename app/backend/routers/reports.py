@@ -412,11 +412,31 @@ def generate(
     )
 
 
-@reports.get("/totals")
+@reports.post("/totals")
 def totals(
+    filters: ReportGenerate,
     session_user: UserModel = Depends(get_current_active_user),
     db: Session = Depends(get_db),
 ):
+    """
+    Totales por rango de fechas:
+    - invoices: filtra por invoice_date (DATE)
+    - expense_reports: filtra por document_date (DATETIME)
+    """
+    try:
+        since_dt = _parse_date(filters.since_date)
+        until_raw = filters.until_date or filters.end_date
+        end_dt = _parse_date(until_raw)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato inválido. Use YYYY-MM-DD o YYYY-MM-DD HH:MM:SS")
+
+    # end_date inclusivo (fin del día si viene sin hora)
+    if end_dt.time() == time.min and (until_raw or "").strip().count(":") == 0:
+        end_dt = datetime.combine(end_dt.date(), time.max)
+
+    if since_dt > end_dt:
+        raise HTTPException(status_code=400, detail="since_date no puede ser mayor que until_date")
+
     def _sum_amounts(values) -> Decimal:
         total = Decimal("0")
         for v in values:
@@ -425,8 +445,30 @@ def totals(
                 total += amt
         return total
 
-    invoice_amounts = [row[0] for row in db.query(InvoiceModel.amount).all()]
-    expense_amounts = [row[0] for row in db.query(ExpenseReportModel.amount).all()]
+    # Invoices: invoice_date es DATE, filtrar por fechas (date <= date)
+    since_date_only = since_dt.date()
+    end_date_only = end_dt.date()
+    invoice_amounts = [
+        row[0]
+        for row in (
+            db.query(InvoiceModel.amount)
+            .filter(InvoiceModel.invoice_date.isnot(None))
+            .filter(InvoiceModel.invoice_date >= since_date_only)
+            .filter(InvoiceModel.invoice_date <= end_date_only)
+            .all()
+        )
+    ]
+
+    # Expense reports: document_date es DATETIME
+    expense_amounts = [
+        row[0]
+        for row in (
+            db.query(ExpenseReportModel.amount)
+            .filter(ExpenseReportModel.document_date >= since_dt)
+            .filter(ExpenseReportModel.document_date <= end_dt)
+            .all()
+        )
+    ]
 
     invoices_total = _sum_amounts(invoice_amounts)
     expense_reports_total = _sum_amounts(expense_amounts)
@@ -435,8 +477,10 @@ def totals(
     invoices_total_minus_13 = invoices_total - invoices_13_percent
     difference_vs_expense_reports = invoices_total_minus_13 - expense_reports_total
 
-    # Devolver como string para no perder precisión
+    # Devolver como string para no perder precisión / no redondear
     return {
+        "since_date": since_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        "until_date": end_dt.strftime("%Y-%m-%d %H:%M:%S"),
         "invoices_total": format(invoices_total, "f"),
         "invoices_13_percent": format(invoices_13_percent, "f"),
         "invoices_total_minus_13": format(invoices_total_minus_13, "f"),
