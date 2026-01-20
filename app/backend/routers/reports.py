@@ -10,7 +10,7 @@ from decimal import Decimal, InvalidOperation
 
 from app.backend.auth.auth_user import get_current_active_user
 from app.backend.db.database import get_db
-from app.backend.db.models import ExpenseReportModel, UserModel
+from app.backend.db.models import ExpenseReportModel, InvoiceModel, UserModel
 from app.backend.schemas import ReportGenerate
 
 
@@ -410,4 +410,37 @@ def generate(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@reports.get("/totals")
+def totals(
+    session_user: UserModel = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    def _sum_amounts(values) -> Decimal:
+        total = Decimal("0")
+        for v in values:
+            amt = _parse_amount(v)
+            if amt is not None:
+                total += amt
+        return total
+
+    invoice_amounts = [row[0] for row in db.query(InvoiceModel.amount).all()]
+    expense_amounts = [row[0] for row in db.query(ExpenseReportModel.amount).all()]
+
+    invoices_total = _sum_amounts(invoice_amounts)
+    expense_reports_total = _sum_amounts(expense_amounts)
+
+    invoices_13_percent = invoices_total * Decimal("0.13")
+    invoices_total_minus_13 = invoices_total - invoices_13_percent
+    difference_vs_expense_reports = invoices_total_minus_13 - expense_reports_total
+
+    # Devolver como string para no perder precisión
+    return {
+        "invoices_total": format(invoices_total, "f"),
+        "invoices_13_percent": format(invoices_13_percent, "f"),
+        "invoices_total_minus_13": format(invoices_total_minus_13, "f"),
+        "expense_reports_total": format(expense_reports_total, "f"),
+        "difference_vs_expense_reports": format(difference_vs_expense_reports, "f"),
+    }
 
