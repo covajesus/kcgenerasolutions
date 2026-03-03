@@ -304,3 +304,14 @@ class BudgetModel(Base):
     budget_date = Column(Date())
     added_date = Column(DateTime())
     updated_date = Column(DateTime())
+
+
+class TaxReturnModel(Base):
+    __tablename__ = 'tax_returns'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    period = Column(String(255))
+    amount = Column(String(255))
+    file = Column(String(255))
+    added_date = Column(DateTime())
+    updated_date = Column(DateTime())

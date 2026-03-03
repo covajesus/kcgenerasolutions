@@ -303,6 +303,44 @@ class UpdateBudget(BaseModel):
             file=None,
         )
 
+
+class TaxReturnList(BaseModel):
+    page: int
+
+
+class TaxReturnSearch(BaseModel):
+    page: int = 0
+    period: Optional[str] = None
+
+
+class StoreTaxReturn(BaseModel):
+    period: str
+    amount: str
+    file: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        period: str = Form(...),
+        amount: str = Form(...),
+    ):
+        return cls(period=period, amount=amount, file=None)
+
+
+class UpdateTaxReturn(BaseModel):
+    period: str
+    amount: str
+    file: Optional[str] = None
+
+    @classmethod
+    def as_form(
+        cls,
+        period: str = Form(...),
+        amount: str = Form(...),
+    ):
+        return cls(period=period, amount=amount, file=None)
+
+
 class UpdateSupplier(BaseModel):
     supplier: str
 
