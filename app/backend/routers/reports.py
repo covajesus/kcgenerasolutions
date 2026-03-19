@@ -473,19 +473,34 @@ def totals(
     invoices_total = _sum_amounts(invoice_amounts)
     expense_reports_total = _sum_amounts(expense_amounts)
 
-    invoices_13_percent = invoices_total * Decimal("0.13")
-    invoices_total_minus_13 = invoices_total - invoices_13_percent
-    difference_vs_expense_reports = invoices_total_minus_13 - expense_reports_total
+    # Business rules (según el Excel):
+    # - HST Collected: 13% de las facturas (invoices_total)
+    # - Net Total Invoice: invoices_total - HST Collected
+    # - HST Paid: 13% de los gastos (expense_reports_total)
+    # - HST to Declare: HST Collected - HST Paid
+    # - Total Profit (operativo): Net Total Invoice - Expenses
+    hst_collected = invoices_total * Decimal("0.13")
+    net_total_invoice = invoices_total - hst_collected
+    hst_paid = expense_reports_total * Decimal("0.13")
+    hst_to_declare = hst_collected - hst_paid
+    total_profit = net_total_invoice - expense_reports_total
 
-    # Devolver solo 4 columnas (como strings para no perder precisión / no redondear)
+    # Devolver claves nuevas + compatibilidad con el frontend existente.
     return {
-        # total invoices menos 13%
-        "net_income": format(invoices_total_minus_13, "f"),
-        # sumatoria del 13%
-        "hst": format(invoices_13_percent, "f"),
-        # suma de expense reports
+        # Claves nuevas (usadas por la UI actualizada)
+        "net_total_invoice": format(net_total_invoice, "f"),
+        "hst_collected": format(hst_collected, "f"),
         "expenses": format(expense_reports_total, "f"),
-        # ganancia = net_income - expenses
-        "total_profit": format(difference_vs_expense_reports, "f"),
+        "hst_paid": format(hst_paid, "f"),
+        "hst_to_declare": format(hst_to_declare, "f"),
+        "total_profit": format(total_profit, "f"),
+
+        # Compatibilidad con nombres anteriores
+        "net_income": format(net_total_invoice, "f"),
+        "hst": format(hst_collected, "f"),
+        "difference_vs_expense_reports": format(total_profit, "f"),
+        "invoices_total_minus_13": format(net_total_invoice, "f"),
+        "invoices_13_percent": format(hst_collected, "f"),
+        "expense_reports_total": format(expense_reports_total, "f"),
     }
 
