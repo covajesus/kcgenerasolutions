@@ -473,14 +473,16 @@ def totals(
     invoices_total = _sum_amounts(invoice_amounts)
     expense_reports_total = _sum_amounts(expense_amounts)
 
-    # Business rules (según el Excel):
-    # - HST Collected: 13% de las facturas (invoices_total)
-    # - Net Total Invoice: invoices_total - HST Collected
+    # Business rules (según definición actual):
+    # - invoices_total se interpreta como monto con impuesto incluido.
+    # - Net Total Invoice: invoices_total / 1.13
+    # - HST Collected: invoices_total - Net Total Invoice
     # - HST Paid: 13% de los gastos (expense_reports_total)
     # - HST to Declare: HST Collected - HST Paid
     # - Total Profit (operativo): Net Total Invoice - Expenses
-    hst_collected = invoices_total * Decimal("0.13")
-    net_total_invoice = invoices_total - hst_collected
+    tax_factor = Decimal("1.13")
+    net_total_invoice = invoices_total / tax_factor if tax_factor != 0 else Decimal("0")
+    hst_collected = invoices_total - net_total_invoice
     hst_paid = expense_reports_total * Decimal("0.13")
     hst_to_declare = hst_collected - hst_paid
     total_profit = net_total_invoice - expense_reports_total
@@ -503,4 +505,53 @@ def totals(
         "invoices_13_percent": format(hst_collected, "f"),
         "expense_reports_total": format(expense_reports_total, "f"),
     }
+
+
+@reports.post("/expense-details")
+def expense_details(
+    filters: ReportGenerate,
+    session_user: UserModel = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Detalle de gastos (expense_reports) por rango de fechas, sin paginación.
+    """
+    try:
+        since_dt = _parse_date(filters.since_date)
+        until_raw = filters.until_date or filters.end_date
+        end_dt = _parse_date(until_raw)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Formato inválido. Use YYYY-MM-DD o YYYY-MM-DD HH:MM:SS")
+
+    if end_dt.time() == time.min and (until_raw or "").strip().count(":") == 0:
+        end_dt = datetime.combine(end_dt.date(), time.max)
+
+    if since_dt > end_dt:
+        raise HTTPException(status_code=400, detail="since_date no puede ser mayor que until_date")
+
+    rows = (
+        db.query(ExpenseReportModel)
+        .filter(ExpenseReportModel.document_date >= since_dt)
+        .filter(ExpenseReportModel.document_date <= end_dt)
+        .order_by(
+            ExpenseReportModel.document_date.is_(None),
+            ExpenseReportModel.document_date.asc(),
+            ExpenseReportModel.id.asc(),
+        )
+        .all()
+    )
+
+    data = []
+    for idx, r in enumerate(rows, start=1):
+        data.append(
+            {
+                "index": idx,
+                "id": r.id,
+                "date": r.document_date.strftime("%Y-%m-%d") if r.document_date else None,
+                "detail": (r.description or r.company or "").strip(),
+                "amount": str(r.amount) if r.amount is not None else "",
+            }
+        )
+
+    return {"message": data}
 
