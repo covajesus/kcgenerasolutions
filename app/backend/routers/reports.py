@@ -9,6 +9,7 @@ from decimal import Decimal, InvalidOperation
 
 
 from app.backend.auth.auth_user import get_current_active_user
+from app.backend.classes.file_class import FileClass
 from app.backend.db.database import get_db
 from app.backend.db.models import ExpenseReportModel, InvoiceModel, UserModel
 from app.backend.schemas import ReportGenerate
@@ -549,6 +550,8 @@ def expense_details(
                 "id": r.id,
                 "date": r.document_date.strftime("%Y-%m-%d") if r.document_date else None,
                 "detail": (r.description or r.company or "").strip(),
+                "file": r.file,
+                "file_url": FileClass(db).get(r.file) if r.file else None,
                 "amount": str(r.amount) if r.amount is not None else "",
             }
         )

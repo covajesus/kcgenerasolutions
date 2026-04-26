@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
+from fastapi.responses import FileResponse
 from app.backend.db.database import get_db
 from sqlalchemy.orm import Session
 from app.backend.schemas import UserLogin, StoreExpenseReport, ExpenseReportList, UpdateExpenseReport, ExpenseReportSearch
@@ -7,12 +8,26 @@ from app.backend.auth.auth_user import get_current_active_user
 from app.backend.classes.file_class import FileClass
 from app.backend.db.models import ExpenseReportModel
 from datetime import datetime
+from pathlib import Path
+import mimetypes
 import uuid
 
 expense_reports = APIRouter(
     prefix="/expense_reports",
     tags=["Expense Reports"]
 )
+
+BASE_DIR = Path(__file__).resolve().parents[3]
+FILES_DIR = BASE_DIR / "files"
+
+
+def _safe_full_path(file_path: str) -> Path:
+    rp = (file_path or "").replace("\\", "/").lstrip("/")
+    full_path = (FILES_DIR / rp).resolve(strict=False)
+    base = FILES_DIR.resolve(strict=False)
+    if base != full_path and base not in full_path.parents:
+        raise HTTPException(status_code=400, detail="Ruta de archivo inválida")
+    return full_path
 
 @expense_reports.post("/")
 def index(expense_report_inputs: ExpenseReportList, session_user: UserLogin = Depends(get_current_active_user), db: Session = Depends(get_db)):
@@ -110,3 +125,22 @@ def edit(id: int, session_user: UserLogin = Depends(get_current_active_user), db
     data = ExpenseReportClass(db).get(id, session_user=session_user)
 
     return {"message": data}
+
+
+@expense_reports.get("/download/{id}")
+def download(id: int, session_user: UserLogin = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    r = db.query(ExpenseReportModel).filter(ExpenseReportModel.id == id).first()
+    if not r or not r.file:
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+
+    full_path = _safe_full_path(r.file)
+    if not full_path.exists() or not full_path.is_file():
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+
+    media_type, _ = mimetypes.guess_type(str(full_path))
+    return FileResponse(
+        path=full_path,
+        filename=full_path.name,
+        media_type=media_type or "application/octet-stream",
+        headers={"Content-Disposition": f"attachment; filename={full_path.name}"},
+    )
